@@ -2,41 +2,42 @@ import { RULES } from "./rules.js";
 import { H } from "./h.js";
 import { Italic } from "./italic.js";
 
+export class Parser {
+  constructor(src, block) {
+    this.src = src;
+    this.block = block;
+  }
 
-class Parser {
-    constructor(src) {
-        this.src = src;
+  parse() {
+    const srcLines = this.src.trim().split("\n");
+    const rules = this.block ? RULES.BLOCK_RULES : RULES.INLINE_RULES;
+    const output = [];
+
+    for (let el of srcLines) {
+      el = el.trim(); // baştaki boşlukları at
+      let result;
+
+      if (rules.h && rules.h.test(el)) {
+        const match = el.match(rules.h);
+        result = H.parseH(match, this.block);
+      } else if (rules.italic && rules.italic.test(el)) {
+        const match = el.match(rules.italic);
+        result = Italic.italic(match, this.block);
+      } else {
+        result = el; // hiçbir kural uymadıysa satırı aynen bırak
+      }
+
+      output.push(result);
     }
 
-    parse() {
-        let src = this.src.trim().split("\n");
-        let regex = "";
-        let result;
-
-        for(let el of src) {
-            if(regex = el.match(RULES.h)) {
-                result = H.parseH(regex);
-                this.src = this.src.replace(regex[0], result);
-            } 
-            else if(regex = el.match(RULES.italic)) {
-                result = Italic.italic(regex);
-                this.src = this.src.replace(regex[0], result);
-                console.log(this.src);
-            }
-        }
-
-    }
-
+    return output.join("\n");
+  }
 }
 
-const src =
-`
-    vay adamim ***** selam kral naber
-
-    aynen aynen italic - falan ya
-
-    asaaafsaf
+const src = `
+    - adamsın brom ** ee
 `;
 
-const parser = new Parser(src);
-parser.parse();
+const parser = new Parser(src, true);
+let result = parser.parse();
+console.log(result);
